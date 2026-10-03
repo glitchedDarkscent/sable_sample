@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sable Barber House, by appointment</title>
+<meta name="description" content="Sable is an appointment-only barber house with six chairs. Build your appointment, choose your barber and book a time.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300..700&family=Marcellus&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --green:#10261F; --green-2:#17332A; --on-green:#EDEEE8; --brass:#B79A5B; --brass-hi:#D6BE86;
+    --bg:#F0F1EC; --ink:#14251F; --muted:#56655E; --line:rgba(20,37,31,.2); --panel:#E4E7E0;
+    --accent:#7D6430; --focus:#7D6430;
+    --display:'Marcellus','Cormorant Garamond',Georgia,'Times New Roman',serif;
+    --ui:'Hanken Grotesk','Helvetica Neue',system-ui,sans-serif;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0B1713; --ink:#EDEEE8; --muted:#A5B2AB; --line:rgba(237,238,232,.2); --panel:#10241D;
+      --accent:#CDB27A; --focus:#D6BE86;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0B1713; --ink:#EDEEE8; --muted:#A5B2AB; --line:rgba(237,238,232,.2); --panel:#10241D;
+    --accent:#CDB27A; --focus:#D6BE86;
+  }
+  html{background:var(--green); scroll-behavior:smooth; scroll-padding-top:calc(env(safe-area-inset-top,0px) + 84px)}
+  *,*::before,*::after{box-sizing:border-box}
+  body{margin:0; background:var(--bg); color:var(--ink); font:400 1.0625rem/1.65 var(--ui); -webkit-font-smoothing:antialiased}
+  h1,h2,h3,h4{font-family:var(--display); font-weight:400; margin:0; letter-spacing:0}
+  p{margin:0}
+  a{color:inherit}
+  button,input{font:inherit; color:inherit}
+  :focus-visible{outline:3px solid var(--focus); outline-offset:3px}
+  .wrap{max-width:1200px; margin-inline:auto; padding-inline:clamp(20px,4.5vw,48px)}
+  .sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+  .sec{padding-block:clamp(84px,11vw,152px)}
+  .dark{background:var(--green); color:var(--on-green)}
+  .dark :focus-visible{outline-color:var(--brass-hi)}
+  .panelbg{background:var(--panel)}
+  .h2{font-size:clamp(2.5rem,5.2vw,4.4rem); line-height:1.08; max-width:16ch}
+  .lead{margin-top:22px; max-width:48ch; color:var(--muted); font-size:1.15rem}
+  .dark .lead{color:#B9C5BE}
+
+  .btn{
+    display:inline-block; text-decoration:none; cursor:pointer; text-align:center;
+    font:600 .98rem/1 var(--ui); letter-spacing:.02em;
+    padding:17px 30px; border:1px solid var(--brass); background:var(--brass); color:#14251F; border-radius:2px;
+    transition:background-color .25s ease, color .25s ease, border-color .25s ease;
+  }
+  .btn:hover{background:var(--brass-hi); border-color:var(--brass-hi)}
+  .btn.ghost{background:transparent; color:inherit; border-color:rgba(237,238,232,.55)}
+  .btn.ghost:hover{background:rgba(237,238,232,.1); border-color:var(--on-green)}
+  .btn.dk{background:var(--green); border-color:var(--brass); color:var(--on-green)}
+  .btn.dk:hover{background:var(--green-2)}
+  .btn[disabled]{opacity:.4; cursor:not-allowed}
+
+  /* header */
+  .hdr{position:fixed; left:0; right:0; top:env(safe-area-inset-top,0px); z-index:50; color:var(--on-green); transition:background-color .3s ease, border-color .3s ease; border-bottom:1px solid transparent}
+  .hdr.solid{background:var(--green); border-bottom-color:rgba(183,154,91,.45)}
+  .hdr-in{display:flex; align-items:center; gap:36px; height:72px}
+  .brand{display:flex; align-items:center; gap:14px; text-decoration:none; font-family:var(--display); font-size:1.35rem; letter-spacing:.34em; line-height:1}
+  .brand svg{width:18px; height:18px; flex:none}
+  .brand small{font:400 .86rem/1 var(--ui); letter-spacing:.02em; color:#B9C5BE; border-left:1px solid rgba(237,238,232,.3); padding-left:14px}
+  .nav{display:flex; gap:32px; margin-inline:auto; font-weight:500; font-size:.98rem}
+  .nav a{text-decoration:none; padding:8px 0; background:linear-gradient(var(--brass),var(--brass)) 0 100%/0 1px no-repeat; transition:background-size .3s ease}
+  .nav a:hover{background-size:100% 1px}
+  .hdr .btn{padding:12px 22px}
+
+  /* hero */
+  .run{height:240vh; position:relative; background:var(--green)}
+  .stick{
+    position:sticky; top:0; height:100vh; height:100svh; overflow:hidden; color:var(--on-green);
+    background:
+      radial-gradient(68% 52% at 58% 70%, rgba(183,154,91,.2), transparent 72%),
+      repeating-linear-gradient(90deg, rgba(237,238,232,.04) 0 1px, transparent 1px 36px),
+      var(--green);
+  }
+  .hero-in{height:100%; display:flex; flex-direction:column; padding-top:104px; padding-bottom:30px}
+  .hero-top{max-width:940px}
+  .hero-top h1{font-size:clamp(2.3rem,5.2vw,4.7rem); line-height:1.06}
+  .hero-top p{margin-top:20px; max-width:44ch; color:#C6D0CA; font-size:1.1rem}
+  .hero-cta{display:flex; flex-wrap:wrap; gap:12px; margin-top:28px}
+  .razor-wrap{flex:1; min-height:130px; position:relative; margin-block:6px}
+  .razor{position:absolute; inset:0; width:100%; height:100%; transform:rotate(-3deg); overflow:visible}
+  .hero-bot{display:flex; align-items:flex-end; justify-content:space-between; gap:18px 40px; flex-wrap:wrap}
+  .hint{display:flex; align-items:center; gap:14px; color:#B9C5BE; font-size:.95rem; transition:opacity .3s ease}
+  .hint i{display:block; width:56px; height:1px; background:var(--brass)}
+  .nextc{text-align:right}
+  .nextc small{display:block; color:#B9C5BE; font-size:.92rem}
+  .nextc strong{display:block; font:400 1.5rem/1.2 var(--display); margin-top:2px}
+  .nextc button{margin-top:6px; background:none; border:0; padding:0; cursor:pointer; color:var(--brass-hi); font-weight:600; text-decoration:underline; text-underline-offset:5px; text-decoration-thickness:1px}
+
+  /* intro */
+  .intro-grid{display:grid; grid-template-columns:1.5fr .7fr; gap:clamp(36px,7vw,120px); align-items:end}
+  .statement{font-family:var(--display); font-size:clamp(1.9rem,3.7vw,3.3rem); line-height:1.24; max-width:24ch}
+  .intro-side p{color:var(--muted); max-width:32ch}
+  .intro-side p + p{margin-top:16px}
+
+  /* services */
+  .svc-list{margin-top:56px; border-top:1px solid var(--line)}
+  .svc{display:grid; grid-template-columns:30px 1fr auto auto; gap:4px 28px; align-items:center; padding:28px 22px; border-bottom:1px solid var(--line); border-left:4px solid transparent; cursor:pointer; transition:background-color .25s ease, border-color .25s ease; position:relative}
+  .svc:hover{background:var(--panel)}
+  .svc.on{background:var(--panel); border-left-color:var(--brass)}
+  .box{width:26px; height:26px; border:1.5px solid var(--ink); border-radius:2px; position:relative; transition:background-color .2s ease, border-color .2s ease}
+  .svc.on .box{background:var(--brass); border-color:var(--brass)}
+  .svc.on .box::after{content:""; position:absolute; left:8px; top:3px; width:7px; height:13px; border:solid #14251F; border-width:0 2px 2px 0; transform:rotate(45deg)}
+  .svc input:focus-visible ~ .box{outline:3px solid var(--focus); outline-offset:3px}
+  .svc-t b{display:block; font:400 clamp(1.5rem,2.4vw,2rem)/1.15 var(--display)}
+  .svc-t small{display:block; margin-top:4px; color:var(--muted); font-size:1rem; max-width:52ch}
+  .dur{color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap}
+  .pr{font-weight:600; font-variant-numeric:tabular-nums; min-width:76px; text-align:right}
+  .sum{
+    position:sticky; bottom:calc(14px + env(safe-area-inset-bottom,0px)); z-index:5; margin-top:30px;
+    background:var(--green); color:var(--on-green); border:1px solid var(--brass); padding:18px 24px;
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px 28px;
+    box-shadow:0 14px 40px rgba(0,0,0,.28);
+  }
+  .sum .s-l{display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 26px}
+  .sum .s-t{color:#B9C5BE; font-size:.98rem}
+  .sum .s-n{font:400 1.65rem/1 var(--display)}
+  .sum :focus-visible{outline-color:var(--brass-hi)}
+
+  /* chairs */
+  .chairs{display:flex; height:640px; margin-top:60px; border-top:1px solid rgba(237,238,232,.2)}
+  .chair{flex:0 0 96px; display:flex; overflow:hidden; background:var(--c); border-left:1px solid rgba(237,238,232,.14); transition:flex-grow .7s cubic-bezier(.2,.7,.2,1)}
+  .chair:last-child{border-right:1px solid rgba(237,238,232,.14)}
+  .chair.open{flex:1 1 96px}
+  .tab{flex:0 0 96px; background:none; border:0; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:space-between; padding:30px 0; color:var(--on-green)}
+  .tab:hover .vname{color:var(--brass-hi)}
+  .tab svg{width:12px; height:12px}
+  .vname{writing-mode:vertical-rl; font:400 1.55rem/1 var(--display); letter-spacing:.04em; transition:color .25s ease}
+  .tab .ar{font-size:1.4rem; line-height:1; color:var(--brass); transition:transform .4s ease}
+  .chair.open .tab .ar{transform:rotate(45deg)}
+  .cpanel{flex:1 1 auto; min-width:600px; display:grid; grid-template-columns:230px 1fr; gap:34px; padding:38px 44px 36px 14px; visibility:hidden; opacity:0; transition:opacity .35s ease, visibility 0s linear .7s}
+  .chair.open .cpanel{visibility:visible; opacity:1; transition:opacity .45s ease .3s, visibility 0s}
+  .art{align-self:center; width:100%; height:auto}
+  .cpanel h3{font-size:clamp(2.2rem,3.4vw,3rem); line-height:1.08}
+  .role{margin-top:6px; color:var(--brass-hi); font-weight:500}
+  .bio{margin-top:18px; color:#C6D0CA; max-width:46ch}
+  .known{margin:18px 0 0; padding:0; list-style:none; display:grid; gap:6px; color:#EDEEE8}
+  .known li{padding-left:20px; position:relative}
+  .known li::before{content:""; position:absolute; left:0; top:.72em; width:10px; height:1px; background:var(--brass)}
+  .slots-h{margin-top:24px; color:#B9C5BE; font-size:.95rem}
+  .chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px}
+  .chip{cursor:pointer; background:transparent; border:1px solid rgba(237,238,232,.45); color:var(--on-green); padding:8px 14px; font-weight:500; border-radius:2px; transition:background-color .2s ease, border-color .2s ease}
+  .chip:hover{background:rgba(183,154,91,.2); border-color:var(--brass)}
+
+  /* hour */
+  .hour-grid{display:grid; grid-template-columns:.8fr 1.2fr; gap:clamp(36px,7vw,110px); align-items:start}
+  .hour-l{position:sticky; top:calc(env(safe-area-inset-top,0px) + 110px)}
+  .tl{list-style:none; margin:0; padding:0 0 0 38px; position:relative}
+  .tl::before{content:""; position:absolute; left:6px; top:12px; bottom:12px; width:1px; background:var(--brass)}
+  .tl li{position:relative; padding:0 0 clamp(36px,5vw,58px)}
+  .tl li:last-child{padding-bottom:0}
+  .tl li::before{content:""; position:absolute; left:-38px; top:14px; width:13px; height:13px; background:var(--bg); border:1px solid var(--brass); transform:rotate(45deg)}
+  .tl .m{font:400 .98rem/1 var(--ui); color:var(--accent); font-weight:600; font-variant-numeric:tabular-nums}
+  .tl h3{font-size:clamp(1.7rem,2.6vw,2.2rem); line-height:1.15; margin-top:6px}
+  .tl p{margin-top:8px; color:var(--muted); max-width:46ch}
+
+  /* membership */
+  .mem-grid{display:grid; grid-template-columns:1fr 1fr; gap:clamp(36px,7vw,110px); align-items:center}
+  .mem-box{border:1px solid var(--brass); padding:clamp(28px,4vw,48px); outline:1px solid rgba(183,154,91,.5); outline-offset:-10px}
+  .mem-box h3{font-size:2.2rem}
+  .mem-price{margin-top:14px; display:flex; align-items:baseline; gap:12px; flex-wrap:wrap}
+  .mem-price b{font:400 3.2rem/1 var(--display)}
+  .mem-price span{color:#B9C5BE}
+  .mem-list{list-style:none; margin:24px 0 28px; padding:0; display:grid; gap:12px}
+  .mem-list li{padding-left:26px; position:relative; color:#E3E8E4}
+  .mem-list li::before{content:""; position:absolute; left:2px; top:.6em; width:9px; height:9px; border:1px solid var(--brass); transform:rotate(45deg)}
+
+  /* ledger */
+  .ledger{display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(28px,5vw,70px); margin-top:64px}
+  .ledger figure{margin:0; border-top:1px solid var(--brass); padding-top:22px}
+  .ledger blockquote{margin:0; font:400 clamp(1.3rem,1.8vw,1.55rem)/1.4 var(--display)}
+  .ledger figcaption{margin-top:18px; color:var(--muted); font-size:.98rem}
+
+  /* booking */
+  .book-grid{display:grid; grid-template-columns:1.1fr .9fr; gap:clamp(36px,6vw,96px); margin-top:56px; align-items:start}
+  .fh{font-size:1.55rem; margin:40px 0 14px}
+  .fh:first-child{margin-top:0}
+  .bk-svc{padding:16px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line)}
+  .bk-svc a{font-weight:600; color:var(--accent)}
+  .warn{color:var(--muted)}
+  .opts{display:flex; flex-wrap:wrap; gap:8px}
+  .opt, .time, .day{cursor:pointer; background:transparent; border:1px solid var(--ink); color:var(--ink); padding:10px 18px; font-weight:500; border-radius:2px; transition:background-color .2s ease, color .2s ease}
+  .opt:hover, .time:hover, .day:hover:not(:disabled){background:var(--bg)}
+  .opt[aria-pressed="true"], .time[aria-pressed="true"], .day[aria-pressed="true"]{background:var(--green); border-color:var(--green); color:var(--on-green)}
+  .days{display:grid; grid-template-columns:repeat(5,1fr); gap:8px}
+  .day{padding:10px 4px; text-align:center; line-height:1.2}
+  .day b{display:block; font:400 1.6rem/1.1 var(--display)}
+  .day:disabled{opacity:.4; cursor:not-allowed}
+  .times{display:flex; flex-wrap:wrap; gap:8px}
+  .times .none{color:var(--muted)}
+  .two{display:grid; grid-template-columns:1fr 1fr; gap:0 26px}
+  .fld{display:block; margin-top:10px}
+  .fld span{display:block; font-weight:600; font-size:.98rem}
+  .fld input{width:100%; border:0; border-bottom:1px solid var(--ink); background:transparent; padding:10px 0; border-radius:0}
+  .err{margin-top:22px; padding:10px 14px; background:#7A2B2B; color:#fff; font-weight:600}
+  .err[hidden]{display:none}
+  #bkForm .btn{margin-top:30px}
+  .done{border:1px solid var(--brass); padding:34px; background:var(--bg)}
+  .done h3{font-size:2.3rem; line-height:1.1}
+  .done p{margin-top:12px; max-width:48ch}
+  .done .btn{margin-top:22px}
+
+  .acard{position:sticky; top:calc(env(safe-area-inset-top,0px) + 100px); background:#F6F6F1; color:#14251F; border:1px solid var(--brass); outline:1px solid var(--brass); outline-offset:-9px; padding:44px 40px 40px}
+  .acard :focus-visible{outline-color:#7D6430}
+  .amono{position:absolute; top:26px; right:28px; width:34px; height:34px}
+  .acard-b{font:400 .95rem/1 var(--display); letter-spacing:.3em; color:#7D6430}
+  .acard h3{font-size:2.2rem; margin-top:14px; line-height:1.1}
+  .acard dl{margin:26px 0 0; display:grid; gap:16px}
+  .acard dt{font-size:.9rem; color:#56655E}
+  .acard dd{margin:2px 0 0; font:400 1.25rem/1.3 var(--display)}
+  .acard .tot{border-top:1px solid rgba(125,100,48,.5); padding-top:16px}
+  .acard .tot dd{font-size:1.6rem}
+  .seal{position:absolute; right:34px; bottom:34px; width:96px; height:96px; border-radius:50%; border:1px solid #7D6430; outline:1px solid #7D6430; outline-offset:-6px; display:grid; place-items:center; text-align:center; font:400 .95rem/1.15 var(--display); color:#7D6430; transform:rotate(-10deg); background:#F6F6F1}
+  .seal[hidden]{display:none}
+
+  /* footer */
+  footer{background:var(--green); color:var(--on-green); padding-top:clamp(64px,8vw,110px)}
+  footer :focus-visible{outline-color:var(--brass-hi)}
+  .foot-grid{display:grid; grid-template-columns:1.2fr 1fr 1fr 1.2fr; gap:40px; padding-bottom:clamp(48px,6vw,80px)}
+  footer h3{font-size:1.4rem; margin-bottom:12px}
+  footer p, footer address, footer li{color:#C6D0CA; font-style:normal}
+  footer address{line-height:1.75}
+  footer .hrs{list-style:none; margin:0; padding:0}
+  footer .hrs li{display:flex; justify-content:space-between; gap:16px; padding:4px 0 4px 12px; border-left:2px solid transparent}
+  footer .hrs li[aria-current="date"]{border-left-color:var(--brass); color:var(--on-green); font-weight:600}
+  .legal{border-top:1px solid rgba(237,238,232,.18); padding-block:20px; color:#9AA9A1; font-size:.95rem}
+
+  @media (max-width:980px){
+    .nav{display:none}
+    .hdr .btn{margin-left:auto}
+    .intro-grid,.hour-grid,.mem-grid,.book-grid{grid-template-columns:1fr}
+    .hour-l,.acard{position:static}
+    .ledger{grid-template-columns:1fr}
+    .foot-grid{grid-template-columns:1fr 1fr}
+    .chairs{flex-direction:column; height:auto}
+    .chair{flex:none; flex-direction:column}
+    .tab{flex:none; flex-direction:row; padding:22px 22px; width:100%}
+    .vname{writing-mode:horizontal-tb; font-size:1.6rem}
+    .cpanel{display:none; min-width:0; grid-template-columns:1fr; padding:6px 22px 34px; visibility:visible; opacity:1}
+    .chair.open .cpanel{display:grid}
+    .art{max-width:170px}
+  }
+  @media (max-width:640px){
+    .svc{grid-template-columns:30px 1fr; padding:22px 14px}
+    .svc .dur{grid-column:2}
+    .svc .pr{grid-column:2; text-align:left}
+    .two{grid-template-columns:1fr}
+    .days{grid-template-columns:repeat(4,1fr)}
+    .foot-grid{grid-template-columns:1fr}
+    .brand small{display:none}
+    .nextc{text-align:left}
+    .acard{padding:38px 26px 34px}
+    .seal{position:static; margin-top:22px}
+  }
+  @media (max-height:720px){ .hero-top p{display:none} }
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{transition:none !important; animation:none !important}
+  }
+</style>
+</head>
+<body>
+
+<svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
+  <defs>
+    <linearGradient id="g-steel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2F6F8"/><stop offset=".22" stop-color="#BAC4CB"/><stop offset=".45" stop-color="#7E8A92"/><stop offset=".6" stop-color="#D5DDE2"/><stop offset=".85" stop-color="#9FAAB1"/><stop offset="1" stop-color="#F7FAFB"/></linearGradient>
+    <linearGradient id="g-steel-h" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#F2F6F8"/><stop offset=".25" stop-color="#B2BDC4"/><stop offset=".5" stop-color="#7E8A92"/><stop offset=".72" stop-color="#D5DDE2"/><stop offset="1" stop-color="#9FAAB1"/></linearGradient>
+    <linearGradient id="g-brass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#EAD8A6"/><stop offset=".5" stop-color="#A98B4E"/><stop offset="1" stop-color="#D3BC84"/></linearGradient>
+    <linearGradient id="g-ebony-v" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#52433A"/><stop offset=".35" stop-color="#2A211B"/><stop offset=".7" stop-color="#17110E"/><stop offset="1" stop-color="#2D241E"/></linearGradient>
+    <linearGradient id="g-ebony-h" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4A3C33"/><stop offset=".4" stop-color="#241B16"/><stop offset=".75" stop-color="#17110E"/><stop offset="1" stop-color="#2D241E"/></linearGradient>
+    <linearGradient id="g-shine" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".95"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <filter id="blur8" x="-10%" y="-200%" width="120%" height="500%"><feGaussianBlur stdDeviation="8"/></filter>
+  </defs>
+</svg>
+
+<header class="hdr" id="hdr">
+  <div class="wrap hdr-in">
+    <a class="brand" href="#top" aria-label="Sable Barber House, back to top">
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1 L19 10 L10 19 L1 10Z" fill="none" stroke="#B79A5B" stroke-width="1.4"/><path d="M10 6 L14 10 L10 14 L6 10Z" fill="#B79A5B"/></svg>
+      SABLE<small>Barber house</small>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="#services">Services</a>
+      <a href="#barbers">Barbers</a>
+      <a href="#hour">The hour</a>
+      <a href="#membership">Membership</a>
+      <a href="#visit">Visit</a>
+    </nav>
+    <a class="btn" href="#book">Book</a>
+  </div>
+</header>
+
+<main id="top">
+  <div class="run" id="run">
+    <div class="stick">
+      <div class="wrap hero-in">
+        <div class="hero-top">
+          <h1>Unhurried cuts and hot-towel shaves.</h1>
+          <p>Appointment-only barbering in a quiet room with six chairs. Every visit is an hour of one barber's full attention.</p>
+          <div class="hero-cta">
+            <a class="btn" href="#book">Book an appointment</a>
+            <button type="button" class="btn ghost" id="openBtn">Open the razor</button>
+          </div>
+        </div>
+        <div class="razor-wrap" id="razorWrap"></div>
+        <div class="hero-bot">
+          <div class="hint" id="hint"><i></i><span>Scroll to open the razor</span></div>
+          <div class="nextc">
+            <small>Next open chair</small>
+            <strong id="nextTxt">Checking the book</strong>
+            <button type="button" id="nextBtn" hidden>Book this time</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="sec" id="about">
+    <div class="wrap intro-grid">
+      <p class="statement">We cut fewer heads in a day, so each one gets the hour it needs.</p>
+      <div class="intro-side">
+        <p>Sable has six chairs and a rule: one client per barber at a time. No walk-ins, no queue by the door, and no clock on the wall.</p>
+        <p>The shop has been run by the same two barbers since 2009, and it still opens with the first appointment at ten.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="services" style="padding-top:0">
+    <div class="wrap">
+      <h2 class="h2">Build your appointment.</h2>
+      <p class="lead">Choose one or more services. We add up the time and the price, and your barber blocks the whole hour for you.</p>
+      <div class="svc-list" id="svcList"></div>
+      <div class="sum" id="sum" aria-live="polite">
+        <div class="s-l"><span class="s-t" id="sumLbl"></span><span class="s-n" id="sumDur"></span><span class="s-n" id="sumPrice"></span></div>
+        <a class="btn" href="#book" id="sumBtn">Choose a barber and time</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec dark" id="barbers">
+    <div class="wrap">
+      <h2 class="h2">Four barbers. Pick yours.</h2>
+      <p class="lead">Each one has a different hand. Open a chair to see who they are and when they are next free.</p>
+      <div class="chairs" id="chairs"></div>
+    </div>
+  </section>
+
+  <section class="sec" id="hour">
+    <div class="wrap hour-grid">
+      <div class="hour-l">
+        <h2 class="h2">Ninety minutes, unhurried.</h2>
+        <p class="lead">This is how a Full Service, a cut and a shave together, runs from the moment you sit down.</p>
+      </div>
+      <ol class="tl" id="tl"></ol>
+    </div>
+  </section>
+
+  <section class="sec dark" id="membership">
+    <div class="wrap mem-grid">
+      <div>
+        <h2 class="h2">The same chair, every month.</h2>
+        <p class="lead">Members keep a standing appointment with their own barber, booked ahead so the time is simply yours.</p>
+      </div>
+      <div class="mem-box">
+        <h3>The Standing Appointment</h3>
+        <div class="mem-price"><b>₹4,500</b><span>a month, instead of ₹5,200 when paid per visit</span></div>
+        <ul class="mem-list">
+          <li>Two Signature Cuts and one Hot Towel Shave each month</li>
+          <li>Your own barber, on a day and time that stays fixed</li>
+          <li>Booking opens thirty days ahead for members</li>
+          <li>Cancel any time with a month's notice</li>
+        </ul>
+        <a class="btn" href="mailto:membership@sable.example?subject=Standing%20Appointment">Ask about membership</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="ledger">
+    <div class="wrap">
+      <h2 class="h2">From the ledger.</h2>
+      <div class="ledger">
+        <figure>
+          <blockquote>I have had the same hour with Rafael on the first Saturday of every month for six years. It is the one appointment I never move.</blockquote>
+          <figcaption>Arjun, a client since 2020</figcaption>
+        </figure>
+        <figure>
+          <blockquote>The best shave I have had, and I have tried a lot of barbers. Nobody here ever looks at a clock.</blockquote>
+          <figcaption>Vikram, a client since 2018</figcaption>
+        </figure>
+        <figure>
+          <blockquote>Imran listened, told me honestly what would work for my hair, and the fade has grown out beautifully.</blockquote>
+          <figcaption>Sameer, a client since 2023</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec panelbg" id="book">
+    <div class="wrap">
+      <h2 class="h2">Book your appointment.</h2>
+      <p class="lead">Pick a barber, a day and a time. Cancel free up to 24 hours before.</p>
+      <div class="book-grid">
+        <div id="formSide">
+          <form id="bkForm" novalidate>
+            <h3 class="fh">Your services</h3>
+            <div class="bk-svc" id="bkSvc"></div>
+            <h3 class="fh" id="bLbl">Barber</h3>
+            <div class="opts" id="bkBarbers" role="group" aria-labelledby="bLbl"></div>
+            <h3 class="fh" id="dLbl">Day</h3>
+            <div class="days" id="bkDays" role="group" aria-labelledby="dLbl"></div>
+            <h3 class="fh" id="tLbl">Time</h3>
+            <div class="times" id="bkTimes" role="group" aria-labelledby="tLbl"></div>
+            <h3 class="fh">Your details</h3>
+            <div class="two">
+              <label class="fld"><span>Name</span><input type="text" id="fName" autocomplete="name"></label>
+              <label class="fld"><span>Mobile number</span><input type="tel" id="fPhone" inputmode="numeric" autocomplete="tel" placeholder="10 digits"></label>
+            </div>
+            <div class="err" id="bkErr" role="alert" hidden></div>
+            <button type="submit" class="btn dk">Confirm appointment</button>
+          </form>
+        </div>
+        <aside class="acard" id="acard" aria-label="Your appointment">
+          <svg class="amono" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1 L19 10 L10 19 L1 10Z" fill="none" stroke="#7D6430" stroke-width="1.2"/><path d="M10 6 L14 10 L10 14 L6 10Z" fill="#7D6430"/></svg>
+          <p class="acard-b">SABLE</p>
+          <h3>Your appointment</h3>
+          <dl>
+            <div><dt>Services</dt><dd id="aSvc">Not chosen yet</dd></div>
+            <div><dt>Barber</dt><dd id="aBar">Any available barber</dd></div>
+            <div><dt>When</dt><dd id="aWhen">Choose a day and time</dd></div>
+            <div><dt>Name</dt><dd id="aName">Not added yet</dd></div>
+            <div class="tot"><dt>Total</dt><dd id="aTot">₹0</dd></div>
+          </dl>
+          <div class="seal" id="aSeal" hidden>Booked</div>
+        </aside>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer id="visit">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="#top" aria-label="Sable Barber House, back to top" style="margin-bottom:18px">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1 L19 10 L10 19 L1 10Z" fill="none" stroke="#B79A5B" stroke-width="1.4"/><path d="M10 6 L14 10 L10 14 L6 10Z" fill="#B79A5B"/></svg>
+          SABLE
+        </a>
+        <address>
+          12 Foundry Row, Old Quarter<br>
+          <a href="tel:+910000000000">+91 00000 00000</a><br>
+          <a href="mailto:hello@sable.example">hello@sable.example</a>
+        </address>
+      </div>
+      <div>
+        <h3>Hours</h3>
+        <ul class="hrs" id="hours" aria-label="Opening hours"></ul>
+      </div>
+      <div>
+        <h3>Getting here</h3>
+        <p>Street parking on Foundry Row, and a garage two minutes away. Five minutes on foot from the Old Quarter metro station.</p>
+      </div>
+      <div>
+        <h3>House notes</h3>
+        <p>Cancel up to 24 hours before at no charge. We take cards, UPI and cash. Please arrive five minutes early so your hour starts on time.</p>
+      </div>
+    </div>
+    <div class="legal">&copy; <span id="yr"></span> Sable Barber House. A sample design.</div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  'use strict';
+  function $(id){ return document.getElementById(id); }
+  function all(sel){ return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function inr(n){ return '\u20B9' + n.toLocaleString('en-IN'); }
+  function pad(n){ return (n < 10 ? '0' : '') + n; }
+  function iso(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var DAYNAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+  /* ---------- data ---------- */
+  var SERVICES = [
+    {id:'signature', n:'The Signature Cut', d:'Consultation, wash, a scissor or clipper cut, hot towel and styling.', m:55, p:1800, x:['fade','full']},
+    {id:'fade', n:'Skin Fade', d:'A precise fade blended to the skin, with razor-finished edges.', m:50, p:2000, x:['signature','full']},
+    {id:'shave', n:'Hot Towel Shave', d:'Straight-razor shave with steamed towels, pre-shave oil and a cooling balm.', m:40, p:1600, x:['full']},
+    {id:'beard', n:'Beard Sculpt', d:'Shaped to your face, lined with the razor and finished with oil.', m:30, p:1200, x:[]},
+    {id:'full', n:'The Full Service', d:'A Signature Cut and a Hot Towel Shave in one unhurried sitting.', m:90, p:3200, x:['signature','fade','shave']},
+    {id:'scalp', n:'Scalp Treatment', d:'Exfoliation and a steam massage that reset the scalp.', m:20, p:900, x:[]},
+    {id:'grey', n:'Grey Blending', d:'Subtle colour that softens grey rather than hiding it.', m:30, p:1500, x:[]}
+  ];
+  var SBY = {}; SERVICES.forEach(function(s){ SBY[s.id] = s; });
+  var BARBERS = [
+    {id:'rafael', n:'Rafael Ibarra', first:'Rafael', role:'Head barber, 18 years', c:'#14302A', off:[3],
+      bio:'Rafael trained in a family shop and still shaves the way it was taught to him: slowly, with a brush and a straight razor.',
+      known:['Straight-razor shaves','Classic scissor cuts','Beard shaping'], art:'razor'},
+    {id:'imran', n:'Imran Qadri', first:'Imran', role:'Senior barber, 12 years', c:'#193A32', off:[2],
+      bio:'Imran is the person to see for a clean fade. He talks through the plan first and then works with quiet precision.',
+      known:['Skin fades','Textured crops','Clipper work'], art:'clippers'},
+    {id:'dev', n:'Dev Malhotra', first:'Dev', role:'Barber, 9 years', c:'#1F4238', off:[4],
+      bio:'Dev cuts with shears almost exclusively, which suits longer hair and anyone who wants a style that grows out well.',
+      known:['Long and medium cuts','Scissor tapers','Beard sculpting'], art:'shears'},
+    {id:'noor', n:'Noor Sheikh', first:'Noor', role:'Barber, 7 years', c:'#264C41', off:[5],
+      bio:'Noor brings a gentler pace to the chair. Her scalp treatments and grey blending are the most requested in the shop.',
+      known:['Scalp treatments','Grey blending','Hot towel finishes'], art:'brush'}
+  ];
+  var BBY = {}; BARBERS.forEach(function(b){ BBY[b.id] = b; });
+  var HOURS = {0:[10,17], 1:null, 2:[10,20], 3:[10,20], 4:[10,20], 5:[10,20], 6:[10,20]};
+
+  var sel = {};
+  var book = {barber:'any', day:'', time:null};
+  var openChair = 0, lastName = '', lastPhone = '';
+
+  /* ---------- availability ---------- */
+  function hash(s){
+    var h = 2166136261, i;
+    for(i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return ((h >>> 0) % 1000) / 1000;
+  }
+  function nowH(){ var n = new Date(); return n.getHours() + n.getMinutes() / 60; }
+  function busy(b, date, t){ return hash(b.id + '|' + date + '|' + t) < 0.42; }
+  function canStart(b, d, t, cells){
+    var wd = d.getDay(), hrs = HOURS[wd];
+    if(!hrs || b.off.indexOf(wd) > -1) return false;
+    if(t + 0.5 * cells > hrs[1] + 1e-9) return false;
+    var key = iso(d), k;
+    if(key === iso(new Date()) && t < nowH() + 0.5) return false;
+    for(k=0;k<cells;k++){ if(busy(b, key, t + 0.5 * k)) return false; }
+    return true;
+  }
+  function need(){
+    var m = 0, p = 0;
+    Object.keys(sel).forEach(function(id){ m += SBY[id].m; p += SBY[id].p; });
+    return {m:m, p:p, count:Object.keys(sel).length, cells:Math.max(1, Math.ceil(m / 30))};
+  }
+  function cellsNow(){ var n = need(); return n.count ? n.cells : 2; }
+  function timesFor(d, cells){
+    var hrs = HOURS[d.getDay()], out = [], t;
+    if(!hrs) return out;
+    for(t=hrs[0]; t <= hrs[1] - 0.5 * cells + 1e-9; t += 0.5) out.push(t);
+    return out;
+  }
+  function availBarbers(d, t, cells){ return BARBERS.filter(function(b){ return canStart(b, d, t, cells); }); }
+  function slotsFor(d, barber, cells){
+    return timesFor(d, cells).filter(function(t){
+      return barber === 'any' ? availBarbers(d, t, cells).length > 0 : canStart(BBY[barber], d, t, cells);
+    });
+  }
+  function dayList(){
+    var out = [], i, d;
+    for(i=0;i<10;i++){ d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() + i); out.push(d); }
+    return out;
+  }
+  function fmtT(t){ var h = Math.floor(t), m = (t - h) * 60; return (h % 12 || 12) + ':' + pad(m) + ' ' + (h >= 12 ? 'pm' : 'am'); }
+  function fmtDur(m){ var h = Math.floor(m / 60), r = m % 60; return (h ? h + ' h' : '') + (h && r ? ' ' : '') + (r ? r + ' min' : ''); }
+  function dayLabel(d){
+    var today = new Date(); today.setHours(0,0,0,0);
+    var diff = Math.round((d - today) / 86400000);
+    if(diff === 0) return 'Today';
+    if(diff === 1) return 'Tomorrow';
+    return d.toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short'});
+  }
+  function nextFor(b, cells, limit){
+    var out = [], days = dayList(), i, j, ts;
+    for(i=0;i<days.length && out.length<limit;i++){
+      ts = timesFor(days[i], cells);
+      for(j=0;j<ts.length && out.length<limit;j++){
+        if(canStart(b, days[i], ts[j], cells)) out.push({d:days[i], t:ts[j]});
+      }
+    }
+    return out;
+  }
+  function nextAny(cells){
+    var days = dayList(), i, j, ts, av;
+    for(i=0;i<days.length;i++){
+      ts = timesFor(days[i], cells);
+      for(j=0;j<ts.length;j++){
+        av = availBarbers(days[i], ts[j], cells);
+        if(av.length) return {d:days[i], t:ts[j], b:av[0]};
+      }
+    }
+    return null;
+  }
+
+  /* ---------- the razor ---------- */
+  var BLADE = 'M362 145 L300 145 C296 140 292 136 284 134 L100 132 C70 132 52 140 52 152 C52 164 72 172 100 172 L284 172 C292 170 296 160 300 155 L362 155 Z';
+  function handleSVG(){
+    var g = '', i;
+    for(i=0;i<9;i++) g += '<path d="M' + (790 + i * 12) + ' 133 V167" stroke="rgba(255,255,255,.1)" stroke-width="2"/>';
+    return '<path d="M346 124 L905 130 C938 131 958 140 958 150 C958 160 938 169 905 170 L346 176 C334 164 334 136 346 124 Z" fill="url(#g-ebony-v)"/>' +
+      '<path d="M440 133 L900 138" stroke="rgba(255,255,255,.22)" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M430 150 L940 150" stroke="rgba(255,255,255,.07)" stroke-width="1.5"/>' + g +
+      '<path d="M344 123 L428 126 L428 174 L344 177 C331 164 331 136 344 123Z" fill="url(#g-brass)"/><path d="M428 126 V174" stroke="rgba(0,0,0,.35)" stroke-width="1.5"/>' +
+      '<path d="M936 133 C950 138 958 143 958 150 C958 157 950 162 936 167Z" fill="url(#g-brass)"/>' +
+      '<circle cx="472" cy="150" r="4.5" fill="url(#g-brass)"/><circle cx="862" cy="150" r="4.5" fill="url(#g-brass)"/>';
+  }
+  function bladeSVG(withShine){
+    var s = '<path d="' + BLADE + '" fill="url(#g-steel)"/>' +
+      '<path d="M284 134 L100 132 C86 132 74 134 66 138 L100 142 L284 143Z" fill="#5C676E"/>' +
+      '<path d="M106 151 L284 151" stroke="rgba(0,0,0,.2)" stroke-width="1.5"/><path d="M104 169 L286 169" stroke="#fff" stroke-opacity=".9" stroke-width="1.6"/>' +
+      '<rect x="300" y="145" width="62" height="10" fill="url(#g-steel)"/>';
+    if(withShine){
+      s += '<clipPath id="bladeClip"><path d="' + BLADE + '"/></clipPath>' +
+        '<rect id="shine" x="0" y="124" width="70" height="56" fill="url(#g-shine)" clip-path="url(#bladeClip)" transform="translate(300 0) skewX(-25)"/>' +
+        '<text id="etch" x="118" y="156" font-family="Hanken Grotesk, sans-serif" font-size="12.5" font-weight="600" letter-spacing="3.4" fill="#4C575E" style="opacity:0">SABLE BARBER HOUSE</text>';
+    }
+    return s;
+  }
+  function razorFull(){
+    return '<svg class="razor" id="razor" viewBox="0 0 1000 300" role="img" aria-label="A straight razor with an ebony handle and brass fittings. It opens as you scroll.">' +
+      '<ellipse id="rzShadow" cx="520" cy="238" rx="300" ry="9" fill="rgba(0,0,0,.55)" filter="url(#blur8)"/>' +
+      '<g id="rz"><g id="blade" transform="rotate(180 362 150)">' + bladeSVG(true) + '</g>' + handleSVG() +
+      '<circle cx="362" cy="150" r="11" fill="url(#g-brass)"/><circle cx="362" cy="150" r="4.5" fill="#10261F"/></g></svg>';
+  }
+  $('razorWrap').innerHTML = razorFull();
+  var elBlade = $('blade'), elRz = $('rz'), elShine = $('shine'), elEtch = $('etch'), elShadow = $('rzShadow');
+  function setRazor(p){
+    var e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+    elBlade.setAttribute('transform', 'rotate(' + (180 * (1 - e)).toFixed(2) + ' 362 150)');
+    elRz.setAttribute('transform', 'translate(' + (-150 * (1 - e)).toFixed(1) + ' 0)');
+    elShine.setAttribute('transform', 'translate(' + (310 - 300 * e).toFixed(1) + ' 0) skewX(-25)');
+    elEtch.style.opacity = Math.max(0, (e - 0.75) / 0.25).toFixed(2);
+    elShadow.setAttribute('rx', (300 + 100 * e).toFixed(0));
+    elShadow.setAttribute('cx', (520 - 70 * (1 - e)).toFixed(0));
+  }
+  var run = $('run'), hint = $('hint'), hdr = $('hdr'), ticking = false;
+  function onScroll(){
+    ticking = false;
+    var y = window.pageYOffset || document.documentElement.scrollTop;
+    hdr.classList.toggle('solid', y > 24);
+    if(reduce) return;
+    var rect = run.getBoundingClientRect(), span = run.offsetHeight - window.innerHeight;
+    var p = span > 0 ? Math.min(1, Math.max(0, -rect.top / span)) : 1;
+    setRazor(p);
+    hint.style.opacity = (1 - Math.min(1, p * 5)).toFixed(2);
+  }
+  window.addEventListener('scroll', function(){ if(!ticking){ ticking = true; requestAnimationFrame(onScroll); } }, {passive:true});
+  window.addEventListener('resize', onScroll);
+  if(reduce){ run.style.height = 'auto'; setRazor(1); hint.style.display = 'none'; $('openBtn').hidden = true; }
+  $('openBtn').addEventListener('click', function(){
+    var top = run.offsetTop + run.offsetHeight - window.innerHeight;
+    window.scrollTo({top: top, behavior: reduce ? 'auto' : 'smooth'});
+  });
+
+  /* ---------- barber illustrations ---------- */
+  var ART = {
+    razor: '<g transform="translate(110 160) rotate(-62) scale(.33) translate(-500 -150)"><g transform="rotate(0 362 150)">' + bladeSVG(false) + '</g>' + handleSVG() + '<circle cx="362" cy="150" r="11" fill="url(#g-brass)"/><circle cx="362" cy="150" r="4.5" fill="#10261F"/></g>',
+    clippers: (function(){
+      var t = '', i;
+      for(i=0;i<14;i++) t += '<rect x="' + (72 + i * 5.7) + '" y="22" width="3" height="22" fill="url(#g-steel)"/>';
+      return '<rect x="78" y="76" width="64" height="214" rx="26" fill="url(#g-ebony-h)"/><rect x="85" y="84" width="5" height="190" rx="2.5" fill="rgba(255,255,255,.14)"/>' +
+        '<rect x="68" y="40" width="84" height="46" rx="6" fill="url(#g-steel)"/>' + t +
+        '<rect x="92" y="116" width="36" height="10" rx="5" fill="url(#g-brass)"/><circle cx="110" cy="190" r="15" fill="url(#g-brass)"/><circle cx="110" cy="190" r="8" fill="#10261F"/>' +
+        '<rect x="96" y="254" width="28" height="5" rx="2.5" fill="url(#g-brass)"/>';
+    })(),
+    shears: '<path d="M104 166 L146 22 L134 20 L96 152Z" fill="url(#g-steel-h)"/><path d="M116 166 L74 22 L86 20 L124 152Z" fill="url(#g-steel-h)"/>' +
+      '<path d="M100 160 L82 212" stroke="url(#g-steel-h)" stroke-width="9" stroke-linecap="round"/><path d="M120 160 L138 212" stroke="url(#g-steel-h)" stroke-width="9" stroke-linecap="round"/>' +
+      '<circle cx="72" cy="244" r="29" fill="none" stroke="url(#g-brass)" stroke-width="9"/><circle cx="148" cy="244" r="29" fill="none" stroke="url(#g-brass)" stroke-width="9"/>' +
+      '<circle cx="110" cy="164" r="8" fill="url(#g-brass)"/><circle cx="110" cy="164" r="3" fill="#10261F"/>',
+    brush: (function(){
+      var l = '', i;
+      for(i=0;i<9;i++) l += '<path d="M' + (82 + i * 7) + ' 118 L' + (70 + i * 10) + ' ' + (44 + (i % 3) * 8) + '" stroke="rgba(110,98,76,.45)" stroke-width="1.4"/>';
+      return '<path d="M68 122 C54 64 86 26 110 26 C134 26 166 64 152 122 Z" fill="#EAE5D7"/>' + l +
+        '<rect x="70" y="118" width="80" height="24" rx="4" fill="url(#g-brass)"/>' +
+        '<path d="M80 142 C76 194 92 244 100 296 L120 296 C128 244 144 194 140 142 Z" fill="url(#g-ebony-h)"/>' +
+        '<path d="M92 150 C90 200 100 240 106 290" stroke="rgba(255,255,255,.15)" stroke-width="3" fill="none"/>' +
+        '<ellipse cx="110" cy="298" rx="15" ry="5" fill="url(#g-brass)"/>';
+    })()
+  };
+
+  /* ---------- services ---------- */
+  function renderServices(){
+    $('svcList').innerHTML = SERVICES.map(function(s){
+      return '<label class="svc" data-id="' + s.id + '"><input class="sr" type="checkbox" value="' + s.id + '"><span class="box" aria-hidden="true"></span>' +
+        '<span class="svc-t"><b>' + esc(s.n) + '</b><small>' + esc(s.d) + '</small></span>' +
+        '<span class="dur">' + fmtDur(s.m) + '</span><span class="pr">' + inr(s.p) + '</span></label>';
+    }).join('');
+  }
+  function syncServices(){
+    all('.svc').forEach(function(row){
+      var on = !!sel[row.dataset.id];
+      row.classList.toggle('on', on);
+      row.querySelector('input').checked = on;
+    });
+    var n = need();
+    $('sumLbl').textContent = n.count ? 'Your appointment' : 'No services selected yet';
+    $('sumDur').textContent = n.count ? fmtDur(n.m) : '';
+    $('sumPrice').textContent = n.count ? inr(n.p) : '';
+    $('sumBtn').hidden = !n.count;
+  }
+  $('svcList').addEventListener('change', function(e){
+    var id = e.target.value; if(!id) return;
+    if(e.target.checked){
+      sel[id] = true;
+      SBY[id].x.forEach(function(o){ delete sel[o]; });
+    } else { delete sel[id]; }
+    syncServices(); onNeedChanged();
+  });
+
+  /* ---------- chairs ---------- */
+  function renderChairs(){
+    var cells = cellsNow();
+    $('chairs').innerHTML = BARBERS.map(function(b, i){
+      var next = nextFor(b, cells, 3), open = i === openChair;
+      return '<section class="chair' + (open ? ' open' : '') + '" style="--c:' + b.c + '" data-i="' + i + '">' +
+        '<button type="button" class="tab" aria-expanded="' + open + '" aria-controls="cp-' + i + '"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1 L19 10 L10 19 L1 10Z" fill="#B79A5B"/></svg><span class="vname">' + esc(b.n) + '</span><span class="ar" aria-hidden="true">+</span></button>' +
+        '<div class="cpanel" id="cp-' + i + '"' + (open ? '' : ' aria-hidden="true"') + '>' +
+        '<svg class="art" viewBox="0 0 220 320" role="img" aria-label="' + esc(b.first) + '\u2019s tool: ' + b.art + '">' + ART[b.art] + '</svg>' +
+        '<div><h3>' + esc(b.n) + '</h3><p class="role">' + esc(b.role) + '</p><p class="bio">' + esc(b.bio) + '</p>' +
+        '<ul class="known">' + b.known.map(function(k){ return '<li>' + esc(k) + '</li>'; }).join('') + '</ul>' +
+        '<p class="slots-h">Next open chairs for ' + (need().count ? 'your appointment' : 'an hour') + '</p>' +
+        '<div class="chips">' + (next.length ? next.map(function(n){
+          return '<button type="button" class="chip" data-b="' + b.id + '" data-d="' + iso(n.d) + '" data-t="' + n.t + '">' + dayLabel(n.d) + ', ' + fmtT(n.t) + '</button>';
+        }).join('') : '<span>No chairs free in the next ten days.</span>') + '</div></div></div></section>';
+    }).join('');
+  }
+  $('chairs').addEventListener('click', function(e){
+    var chip = e.target.closest('.chip');
+    if(chip){ pickSlot(chip.dataset.b, chip.dataset.d, parseFloat(chip.dataset.t)); return; }
+    var tab = e.target.closest('.tab');
+    if(tab){
+      var i = +tab.closest('.chair').dataset.i;
+      openChair = openChair === i ? -1 : i;
+      all('.chair').forEach(function(c){
+        var o = +c.dataset.i === openChair;
+        c.classList.toggle('open', o);
+        c.querySelector('.tab').setAttribute('aria-expanded', o ? 'true' : 'false');
+        var p = c.querySelector('.cpanel'); if(o) p.removeAttribute('aria-hidden'); else p.setAttribute('aria-hidden', 'true');
+      });
+    }
+  });
+  function pickSlot(bid, dIso, t){
+    book.barber = bid; book.day = dIso; book.time = t;
+    renderBook();
+    var el = $('book');
+    window.scrollTo({top: el.getBoundingClientRect().top + window.pageYOffset - 70, behavior: reduce ? 'auto' : 'smooth'});
+  }
+
+  /* ---------- the hour ---------- */
+  var HOUR = [
+    [0, 'Welcome and consultation', 'Coffee, whisky or water, and a proper conversation about what you want and what will suit you.'],
+    [10, 'Wash and scalp massage', 'A warm wash, followed by a short massage that settles the scalp.'],
+    [25, 'The cut', 'Scissors, clippers and razor edging, whichever the hair calls for. Nobody rushes this part.'],
+    [55, 'Hot towel and shave', 'Steamed towels, pre-shave oil, a lathered brush and a straight razor.'],
+    [80, 'The finish', 'A cooling tonic, a final check of every line and styling you can repeat at home.']
+  ];
+  $('tl').innerHTML = HOUR.map(function(h){
+    return '<li><span class="m">' + (h[0] === 0 ? 'On arrival' : 'After ' + h[0] + ' minutes') + '</span><h3>' + esc(h[1]) + '</h3><p>' + esc(h[2]) + '</p></li>';
+  }).join('');
+
+  /* ---------- booking ---------- */
+  function ensureBooking(){
+    var cells = cellsNow(), days = dayList(), cur = null, i;
+    for(i=0;i<days.length;i++){ if(iso(days[i]) === book.day) cur = days[i]; }
+    if(!cur || !slotsFor(cur, book.barber, cells).length){
+      book.day = '';
+      for(i=0;i<days.length;i++){
+        if(slotsFor(days[i], book.barber, cells).length){ book.day = iso(days[i]); cur = days[i]; break; }
+      }
+    }
+    if(book.day && book.time !== null && slotsFor(cur, book.barber, cells).indexOf(book.time) < 0) book.time = null;
+    if(!book.day) book.time = null;
+  }
+  function dateOf(isoStr){ return new Date(isoStr + 'T00:00:00'); }
+  function renderBook(){
+    ensureBooking();
+    var n = need(), cells = cellsNow();
+    // services line
+    $('bkSvc').innerHTML = n.count
+      ? '<p>' + Object.keys(sel).map(function(id){ return esc(SBY[id].n); }).join(', ') + '. ' + fmtDur(n.m) + ', ' + inr(n.p) + '. <a href="#services">Change</a></p>'
+      : '<p class="warn">No services selected yet. <a href="#services">Choose your services</a> and we will find chairs long enough for them.</p>';
+    // barbers
+    $('bkBarbers').innerHTML = [{id:'any', first:'Any barber'}].concat(BARBERS).map(function(b){
+      return '<button type="button" class="opt" data-b="' + b.id + '" aria-pressed="' + (book.barber === b.id) + '">' + esc(b.first) + '</button>';
+    }).join('');
+    // days
+    $('bkDays').innerHTML = dayList().slice(0, 10).map(function(d){
+      var has = slotsFor(d, book.barber, cells).length > 0, id = iso(d);
+      return '<button type="button" class="day" data-d="' + id + '"' + (has ? '' : ' disabled') + ' aria-pressed="' + (book.day === id) + '">' +
+        d.toLocaleDateString('en-IN', {weekday:'short'}) + '<b>' + d.getDate() + '</b>' + d.toLocaleDateString('en-IN', {month:'short'}) + '</button>';
+    }).join('');
+    // times
+    var ts = book.day ? slotsFor(dateOf(book.day), book.barber, cells) : [];
+    $('bkTimes').innerHTML = ts.length ? ts.map(function(t){
+      return '<button type="button" class="time" data-t="' + t + '" aria-pressed="' + (book.time === t) + '">' + fmtT(t) + '</button>';
+    }).join('') : '<p class="none">No times are free for this selection. Try another day or barber.</p>';
+    renderCard();
+    renderNext();
+  }
+  function renderCard(){
+    var n = need();
+    $('aSvc').textContent = n.count ? Object.keys(sel).map(function(id){ return SBY[id].n; }).join(', ') : 'Not chosen yet';
+    $('aBar').textContent = book.barber === 'any' ? 'Any available barber' : BBY[book.barber].n;
+    $('aWhen').textContent = book.day && book.time !== null ? dayLabel(dateOf(book.day)) + ', ' + fmtT(book.time) : (book.day ? dayLabel(dateOf(book.day)) + ', choose a time' : 'Choose a day and time');
+    var nm = $('fName') ? $('fName').value.trim() : lastName;
+    $('aName').textContent = nm || 'Not added yet';
+    $('aTot').textContent = n.count ? inr(n.p) + ' for ' + fmtDur(n.m) : '\u20B90';
+  }
+  function onNeedChanged(){ renderBook(); renderChairs(); }
+
+  function bindForm(){
+    $('bkBarbers').addEventListener('click', function(e){
+      var b = e.target.closest('.opt'); if(!b) return;
+      book.barber = b.dataset.b; renderBook();
+    });
+    $('bkDays').addEventListener('click', function(e){
+      var b = e.target.closest('.day'); if(!b || b.disabled) return;
+      book.day = b.dataset.d; book.time = null; renderBook();
+    });
+    $('bkTimes').addEventListener('click', function(e){
+      var b = e.target.closest('.time'); if(!b) return;
+      book.time = parseFloat(b.dataset.t); renderBook();
+    });
+    $('fName').addEventListener('input', renderCard);
+    $('bkForm').addEventListener('submit', onSubmit);
+    $('fName').value = lastName; $('fPhone').value = lastPhone;
+  }
+  var formHTML = $('formSide').innerHTML;
+  function fail(msg, el){ var e = $('bkErr'); e.textContent = msg; e.hidden = false; if(el) el.focus(); }
+  function onSubmit(ev){
+    ev.preventDefault();
+    var n = need(), name = $('fName').value.trim(), phone = $('fPhone').value.replace(/\D/g, '');
+    if(!n.count) return fail('Choose at least one service so we can reserve the right amount of time.', null);
+    if(!book.day || book.time === null) return fail('Choose a day and a time for your appointment.', null);
+    if(!name) return fail('Enter a name for the appointment.', $('fName'));
+    if(phone.length < 10) return fail('Enter a 10-digit mobile number so we can confirm.', $('fPhone'));
+    var d = dateOf(book.day), who = book.barber === 'any' ? availBarbers(d, book.time, n.cells)[0] : BBY[book.barber];
+    if(!who) return fail('That time was just taken. Please choose another.', null);
+    lastName = name; lastPhone = phone;
+    $('aBar').textContent = who.n; $('aName').textContent = name; $('aSeal').hidden = false;
+    $('formSide').innerHTML =
+      '<div class="done" role="status" tabindex="-1" id="doneBox"><h3>You are booked in, ' + esc(name.split(' ')[0]) + '.</h3>' +
+      '<p>' + esc(who.first) + ' will see you on ' + esc(d.toLocaleDateString('en-IN', {weekday:'long', day:'numeric', month:'long'})) + ' at ' + fmtT(book.time) + ' for ' + esc(Object.keys(sel).map(function(id){ return SBY[id].n; }).join(', ')) + '.</p>' +
+      '<p>We will text ' + esc(phone) + ' to confirm. Please arrive five minutes early. You can cancel free of charge up to 24 hours before.</p>' +
+      '<button type="button" class="btn dk" id="again">Change appointment</button></div>';
+    $('doneBox').focus();
+    $('again').addEventListener('click', function(){
+      $('aSeal').hidden = true;
+      $('formSide').innerHTML = formHTML;
+      bindForm(); renderBook(); $('fName').focus();
+    });
+  }
+
+  /* ---------- hero: next open chair ---------- */
+  function renderNext(){
+    var nx = nextAny(cellsNow());
+    if(!nx){ $('nextTxt').textContent = 'Fully booked this week'; $('nextBtn').hidden = true; return; }
+    $('nextTxt').textContent = dayLabel(nx.d) + ', ' + fmtT(nx.t) + ' with ' + nx.b.first;
+    $('nextBtn').hidden = false;
+    $('nextBtn').onclick = function(){ pickSlot(nx.b.id, iso(nx.d), nx.t); };
+  }
+
+  /* ---------- hours + footer ---------- */
+  function hrs(x){ var h = Math.floor(x); return (h % 12 || 12) + (h >= 12 ? ' pm' : ' am'); }
+  (function(){
+    var today = new Date().getDay(), order = [1,2,3,4,5,6,0];
+    $('hours').innerHTML = order.map(function(d){
+      var h = HOURS[d];
+      return '<li' + (d === today ? ' aria-current="date"' : '') + '><span>' + DAYNAMES[d] + '</span><span>' + (h ? hrs(h[0]) + ' to ' + hrs(h[1]) : 'Closed') + '</span></li>';
+    }).join('');
+    $('yr').textContent = new Date().getFullYear();
+  })();
+
+  /* ---------- init ---------- */
+  renderServices();
+  syncServices();
+  bindForm();
+  renderBook();
+  renderChairs();
+  onScroll();
+})();
+</script>
+</body>
+</html>
